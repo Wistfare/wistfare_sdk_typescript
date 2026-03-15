@@ -1,0 +1,24 @@
+{
+  "name": "@wistfare/business",
+  "version": "0.1.0",
+  "description": "Wistfare Business SDK — business management, staff, teams & API keys",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "peerDependencies": {
+    "@wistfare/core": "^0.1.0"
+  },
+  "license": "MIT"
+}
