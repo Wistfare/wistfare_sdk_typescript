@@ -40,7 +40,7 @@ describe('Wistfare client', () => {
 
     it('creates client with valid API key', () => {
       const client = new Wistfare({ apiKey: 'wf_test_abc' });
-      expect(client.apiKey).toBe('wf_test_abc');
+      expect((client as unknown as { apiKey: string }).apiKey).toBe('wf_test_abc');
     });
   });
 
@@ -66,9 +66,9 @@ describe('Wistfare client', () => {
       expect(client.baseUrl).toBe('https://api.example.com');
     });
 
-    it('defaults to https://api.wistfare.com', () => {
+    it('defaults to https://api-production.wistfare.com', () => {
       const client = new Wistfare({ apiKey: 'wf_test_x' });
-      expect(client.baseUrl).toBe('https://api.wistfare.com');
+      expect(client.baseUrl).toBe('https://api-production.wistfare.com');
     });
   });
 

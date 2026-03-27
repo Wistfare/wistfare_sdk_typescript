@@ -45,7 +45,7 @@ console.log(collection.transactionId, collection.status);
 ```typescript
 const wf = new Wistfare({
   apiKey: "wf_live_xxx",       // Required — wf_live_* or wf_test_*
-  baseUrl: "https://...",       // Optional — defaults to https://api.wistfare.com
+  baseUrl: "https://...",       // Optional — defaults to https://api-production.wistfare.com
   timeout: 30000,               // Optional — request timeout in ms (default: 30s)
   maxRetries: 2,                // Optional — automatic retries on 5xx/network errors
 });

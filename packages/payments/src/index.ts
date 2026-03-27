@@ -1,20 +1,11 @@
 export { PaymentsClient } from './client.js';
 export type {
   FeeConfig,
-  SetFeeConfigParams,
-  FeeModel,
-  TransactionType,
   PaymentRequest,
   CreatePaymentRequestParams,
-  PaymentRequestType,
-  PaymentRequestStatus,
-  PaymentTransaction,
-  TransactionStatus,
   InitiateCollectionParams,
   CollectionResponse,
-  Disbursement,
+  ListCollectionsParams,
   InitiateDisbursementParams,
   DisbursementResponse,
-  CalculateFeeParams,
-  CalculateFeeResult,
 } from './types.js';

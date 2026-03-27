@@ -2,7 +2,7 @@
 export interface WistfareConfig {
   /** API key (wf_live_* or wf_test_*). */
   apiKey: string;
-  /** Base URL override. Defaults to https://api.wistfare.com. */
+  /** Base URL override. Defaults to https://api-production.wistfare.com. */
   baseUrl?: string;
   /** Request timeout in milliseconds. Defaults to 30000. */
   timeout?: number;

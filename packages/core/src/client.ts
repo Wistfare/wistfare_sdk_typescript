@@ -9,14 +9,14 @@ import {
   InternalError,
 } from './errors.js';
 
-const DEFAULT_BASE_URL = 'https://api.wistfare.com';
+const DEFAULT_BASE_URL = 'https://api-production.wistfare.com';
 const DEFAULT_TIMEOUT = 30_000;
 const DEFAULT_MAX_RETRIES = 2;
 const SDK_VERSION = '0.1.0';
 
 /** Core HTTP client shared by all service packages. */
 export class Wistfare {
-  readonly apiKey: string;
+  private readonly apiKey: string;
   readonly baseUrl: string;
   private readonly timeout: number;
   private readonly maxRetries: number;
@@ -50,10 +50,10 @@ export class Wistfare {
         await sleep(backoffMs(attempt));
       }
 
-      try {
-        const controller = new AbortController();
-        const timer = setTimeout(() => controller.abort(), this.timeout);
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), this.timeout);
 
+      try {
         const headers: Record<string, string> = {
           'X-API-Key': this.apiKey,
           'User-Agent': `wistfare-node/${SDK_VERSION}`,
@@ -71,18 +71,6 @@ export class Wistfare {
           init.body = JSON.stringify(options.body);
         }
 
-        if (options?.query) {
-          const params = new URLSearchParams();
-          for (const [k, v] of Object.entries(options.query)) {
-            if (v !== undefined && v !== null) params.set(k, String(v));
-          }
-          const qs = params.toString();
-          if (qs) {
-            const separator = url.includes('?') ? '&' : '?';
-            Object.assign(init, { url: `${url}${separator}${qs}` });
-          }
-        }
-
         const finalUrl = options?.query
           ? `${url}?${new URLSearchParams(
               Object.fromEntries(
@@ -92,7 +80,6 @@ export class Wistfare {
           : url;
 
         const response = await fetch(finalUrl, init);
-        clearTimeout(timer);
 
         if (response.ok) {
           if (response.status === 204) return undefined as T;
@@ -122,6 +109,8 @@ export class Wistfare {
         if (err instanceof WistfareError) throw err;
         lastError = err as Error;
         if (attempt >= this.maxRetries) break;
+      } finally {
+        clearTimeout(timer);
       }
     }
 
@@ -135,10 +124,6 @@ export class Wistfare {
 
   async post<T>(path: string, body?: unknown): Promise<T> {
     return this.request<T>('POST', path, { body });
-  }
-
-  async put<T>(path: string, body?: unknown): Promise<T> {
-    return this.request<T>('PUT', path, { body });
   }
 
   async patch<T>(path: string, body?: unknown): Promise<T> {
