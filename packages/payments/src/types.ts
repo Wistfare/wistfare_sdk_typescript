@@ -120,21 +120,37 @@ export type WebhookTransactionType = 'collection' | 'disbursement';
 
 /** Payload delivered to your webhook endpoint. */
 export interface WebhookPayload {
+  /** One of the webhook event types (e.g. `collection.completed`, `payment.failed`). */
   event: WebhookEvent;
+  /** Unique Wistfare transaction identifier. */
   transactionId: string;
+  /** `collection` or `disbursement`. */
   transactionType: WebhookTransactionType;
+  /** Terminal status: `pending`, `completed`, `failed`, or `expired`. */
   status: string;
+  /** Original transaction amount. */
   amount: string;
+  /** Fee deducted from the transaction. */
   feeAmount: string;
+  /** Amount after fees. */
   netAmount: string;
+  /** Currency code (e.g. `RWF`). */
   currency: string;
+  /** The business wallet involved. */
   businessWalletId: string;
+  /** Customer phone number. */
   customerPhone: string;
+  /** Customer display name (may be empty). */
   customerName: string;
+  /** Payment rail used (e.g. `mtn_momo`, `airtel_money`). */
   paymentMethod: string;
+  /** Your original reference ID passed when creating the collection or disbursement. */
   referenceId: string;
+  /** Human-readable description. */
   description: string;
+  /** Empty on success; contains the error message on failure. */
   failureReason: string;
+  /** ISO 8601 timestamp of the event. */
   timestamp: string;
 }
 
