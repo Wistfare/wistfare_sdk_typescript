@@ -155,8 +155,8 @@ export interface WebhookPayload {
 }
 
 /**
- * Parse a raw webhook request body into a typed WebhookPayload.
- * Throws if the body is not valid JSON or does not match the expected shape.
+ * Legacy JSON decoding only: does not authenticate the sender or validate shape.
+ * For dated collection notifications use verifyCollectionWebhook on raw bytes.
  */
 export function parseWebhookPayload(body: string | Uint8Array): WebhookPayload {
   const raw = typeof body === 'string' ? body : new TextDecoder().decode(body);

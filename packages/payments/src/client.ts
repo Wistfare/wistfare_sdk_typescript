@@ -1,4 +1,5 @@
 import type { Wistfare, ListResponse, PaginationParams } from '@wistfare/core';
+import { CollectionsClient, WebhookEndpointsClient } from './collections.js';
 import type {
   FeeConfig,
   PaymentRequest,
@@ -13,9 +14,13 @@ import type {
 /** Wistfare Payments client — collections, disbursements, fees & payment requests. */
 export class PaymentsClient {
   private readonly client: Wistfare;
+  readonly collections: CollectionsClient;
+  readonly webhookEndpoints: WebhookEndpointsClient;
 
   constructor(client: Wistfare) {
     this.client = client;
+    this.collections = new CollectionsClient(client);
+    this.webhookEndpoints = new WebhookEndpointsClient(client);
   }
 
   // ── Fees ──
@@ -35,12 +40,12 @@ export class PaymentsClient {
 
   // ── Collections ──
 
-  /** Initiate a mobile money collection from a customer. */
+  /** @deprecated Legacy unversioned API. Use collections.create with an idempotency key. */
   async initiateCollection(params: InitiateCollectionParams): Promise<CollectionResponse> {
     return this.client.post('/v1/collections', params);
   }
 
-  /** List collections with optional filters. */
+  /** @deprecated Legacy unversioned API. Use collections.list. */
   async listCollections(params?: ListCollectionsParams): Promise<ListResponse<CollectionResponse>> {
     return this.client.get('/v1/collections', params ? { ...params } : undefined);
   }

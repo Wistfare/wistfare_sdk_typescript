@@ -104,10 +104,10 @@ describe('Wistfare client', () => {
       await client.request('GET', '/v1/test');
 
       const init = fetchMock.mock.calls[0][1] as RequestInit;
-      const headers = init.headers as Record<string, string>;
-      expect(headers['X-API-Key']).toBe('wf_test_key123');
-      expect(headers['User-Agent']).toBe('wistfare-node/0.1.0');
-      expect(headers['Accept']).toBe('application/json');
+      const headers = new Headers(init.headers);
+      expect(headers.get('X-API-Key')).toBe('wf_test_key123');
+      expect(headers.get('User-Agent')).toBe('wistfare-node/0.1.0');
+      expect(headers.get('Accept')).toBe('application/json');
     });
 
     it('sets Content-Type when body is provided', async () => {
@@ -117,8 +117,8 @@ describe('Wistfare client', () => {
       await client.request('POST', '/v1/items', { body: { name: 'test' } });
 
       const init = fetchMock.mock.calls[0][1] as RequestInit;
-      const headers = init.headers as Record<string, string>;
-      expect(headers['Content-Type']).toBe('application/json');
+      const headers = new Headers(init.headers);
+      expect(headers.get('Content-Type')).toBe('application/json');
       expect(init.body).toBe(JSON.stringify({ name: 'test' }));
     });
 
