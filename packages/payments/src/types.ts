@@ -120,27 +120,43 @@ export type WebhookTransactionType = 'collection' | 'disbursement';
 
 /** Payload delivered to your webhook endpoint. */
 export interface WebhookPayload {
+  /** One of the webhook event types (e.g. `collection.completed`, `payment.failed`). */
   event: WebhookEvent;
+  /** Unique Wistfare transaction identifier. */
   transactionId: string;
+  /** `collection` or `disbursement`. */
   transactionType: WebhookTransactionType;
+  /** Terminal status: `pending`, `completed`, `failed`, or `expired`. */
   status: string;
+  /** Original transaction amount. */
   amount: string;
+  /** Fee deducted from the transaction. */
   feeAmount: string;
+  /** Amount after fees. */
   netAmount: string;
+  /** Currency code (e.g. `RWF`). */
   currency: string;
+  /** The business wallet involved. */
   businessWalletId: string;
+  /** Customer phone number. */
   customerPhone: string;
+  /** Customer display name (may be empty). */
   customerName: string;
+  /** Payment rail used (e.g. `mtn_momo`, `airtel_money`). */
   paymentMethod: string;
+  /** Your original reference ID passed when creating the collection or disbursement. */
   referenceId: string;
+  /** Human-readable description. */
   description: string;
+  /** Empty on success; contains the error message on failure. */
   failureReason: string;
+  /** ISO 8601 timestamp of the event. */
   timestamp: string;
 }
 
 /**
- * Parse a raw webhook request body into a typed WebhookPayload.
- * Throws if the body is not valid JSON or does not match the expected shape.
+ * Legacy JSON decoding only: does not authenticate the sender or validate shape.
+ * For dated collection notifications use verifyCollectionWebhook on raw bytes.
  */
 export function parseWebhookPayload(body: string | Uint8Array): WebhookPayload {
   const raw = typeof body === 'string' ? body : new TextDecoder().decode(body);

@@ -45,30 +45,44 @@ export class Wistfare {
     const url = `${this.baseUrl}${path}`;
     let lastError: Error | undefined;
 
-    for (let attempt = 0; attempt <= this.maxRetries; attempt++) {
+    // Keep the exact payload and idempotency key stable across network retries.
+    const body = options?.body === undefined ? undefined : JSON.stringify(options.body);
+    const extraHeaders = new Headers(options?.headers);
+    const safeToRetry = ['GET', 'HEAD', 'OPTIONS'].includes(method.toUpperCase())
+      || !!extraHeaders.get('Idempotency-Key');
+    const maxRetries = safeToRetry ? this.maxRetries : 0;
+    const timeout = options?.timeout ?? this.timeout;
+    if (!Number.isSafeInteger(timeout) || timeout < 1 || timeout > 2_147_483_647) {
+      throw new RangeError('Request timeout must be a positive integer number of milliseconds within the timer range');
+    }
+
+    for (let attempt = 0; attempt <= maxRetries; attempt++) {
       if (attempt > 0) {
         await sleep(backoffMs(attempt));
       }
 
       const controller = new AbortController();
-      const timer = setTimeout(() => controller.abort(), this.timeout);
+      const timer = setTimeout(() => controller.abort(), timeout);
 
       try {
-        const headers: Record<string, string> = {
-          'X-API-Key': this.apiKey,
-          'User-Agent': `wistfare-node/${SDK_VERSION}`,
-          'Accept': 'application/json',
-        };
+        // Headers.set replaces case-insensitively; a plain object would merge
+        // caller x-api-key with X-API-Key into one invalid comma-separated value.
+        const headers = new Headers(extraHeaders);
+        headers.set('X-API-Key', this.apiKey);
+        headers.set('User-Agent', `wistfare-node/${SDK_VERSION}`);
+        headers.set('Accept', 'application/json');
 
         const init: RequestInit = {
           method,
           headers,
           signal: controller.signal,
+          // Custom API-key headers must never be forwarded to a redirect target.
+          redirect: 'error',
         };
 
-        if (options?.body !== undefined) {
-          headers['Content-Type'] = 'application/json';
-          init.body = JSON.stringify(options.body);
+        if (body !== undefined) {
+          headers.set('Content-Type', 'application/json');
+          init.body = body;
         }
 
         const finalUrl = options?.query
@@ -92,14 +106,14 @@ export class Wistfare {
 
         if (response.status === 429) {
           const retryAfter = Number(response.headers.get('retry-after') ?? '5');
-          if (attempt < this.maxRetries) {
+          if (attempt < maxRetries) {
             await sleep(retryAfter * 1000);
             continue;
           }
           throw new RateLimitError(retryAfter, requestId);
         }
 
-        if (response.status >= 500 && attempt < this.maxRetries) {
+        if (response.status >= 500 && attempt < maxRetries) {
           lastError = new InternalError(message, requestId);
           continue;
         }
@@ -108,7 +122,7 @@ export class Wistfare {
       } catch (err) {
         if (err instanceof WistfareError) throw err;
         lastError = err as Error;
-        if (attempt >= this.maxRetries) break;
+        if (attempt >= maxRetries) break;
       } finally {
         clearTimeout(timer);
       }
@@ -156,9 +170,12 @@ export class Wistfare {
   }
 }
 
-interface RequestOptions {
+export interface RequestOptions {
   body?: unknown;
   query?: Record<string, unknown>;
+  headers?: Record<string, string>;
+  /** Per-attempt request timeout in milliseconds; defaults to the client timeout. */
+  timeout?: number;
 }
 
 function backoffMs(attempt: number): number {
